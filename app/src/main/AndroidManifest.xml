@@ -17,6 +17,9 @@
         android:theme="@style/Theme.PrifsCourseAndriod"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".FeedbackActivity"
+            android:exported="false" />
+        <activity
             android:name=".Account"
             android:exported="false" />
         <activity
