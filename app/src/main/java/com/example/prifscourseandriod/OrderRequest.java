@@ -1,5 +1,7 @@
 package com.example.prifscourseandriod;
 
+import com.example.prifscourseandriod.model.Chat;
+
 import java.util.List;
 
 public class OrderRequest {
@@ -7,8 +9,11 @@ public class OrderRequest {
     private Double price;
     private Integer buyerId;
     private Integer restaurantId;
-    private Integer driverId; // nullable
+    private Integer driverId;
     private List<Integer> cuisineIds;
+
+    public OrderRequest() {
+    }
 
     // getters and setters
     public String getName() { return name; }

@@ -26,6 +26,10 @@ public class Review {
         this.feedbackUser = feedbackUser;
     }
 
+    public Review() {
+
+    }
+
     public int getId() {
         return id;
     }

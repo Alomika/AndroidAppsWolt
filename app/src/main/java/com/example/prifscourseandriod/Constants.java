@@ -14,13 +14,19 @@ public class Constants {
     public static final String INSERT_NEW_REVIEW_URL = HOME_URL + "insertReview";
     public static final String GET_ALL_CHATS_URL = HOME_URL + "allChats";
     public static final String INSERT_CHAT_BY_ID = HOME_URL + "insertChat";
-    public static final String GET_ALL_FOODORDERS_URL = HOME_URL + "allOrders";
     public static final String INSERT_NEW_FOODORDER_URL = HOME_URL + "insertOrder";
     public static final String GET_ORDERS_BY_BUYER_ID = HOME_URL + "buyer/%d";
     public static final String UPDATE_ORDER_STATUS_URL = HOME_URL + "order/%d/status";
+    public static final String UPDATE_ORDER_CHAT_URL = HOME_URL + "order/%d/chat";
 
     public static final String GET_CUISINE_BY_ORDER_ID = HOME_URL + "order/%d/cuisines";
     public static final String GET_REVIEWS_BY_USER_ID = HOME_URL + "user/%d/feedbacks";
     public static final String CREATE_REVIEW_FOR_ORDER = HOME_URL + "order/%d/review";
     public static final String GET_DRIVER_BY_ID = HOME_URL + "driver/%d";
+    public static final String GET_CHAT_BY_ORDER_ID = HOME_URL + "order/%d/chat";
+    public static final String CREATE_CHAT_FOR_ORDER = HOME_URL + "order/%d/chat1";
+    public static final String GET_MESSAGES_BY_CHAT_ID = HOME_URL + "reviews/simple/chat/%d";
+    public static final String SEND_MESSAGE_TO_CHAT = HOME_URL + "reviews/simple/chat/%d";
+    public static final String GET_USER_BY_ID = HOME_URL + "user/%d";
+    public static final String GET_FEEDBACK_BY_COMMENTOWNER_ID_URL = HOME_URL + "reviews/simple/user/%d";
 }

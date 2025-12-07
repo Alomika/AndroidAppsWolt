@@ -53,27 +53,24 @@ public class FeedbackActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_feedback);
 
-        feedbackList = findViewById(R.id.feedbackList);
+        feedbackList = findViewById(R.id.ratingList);
         feedbackField = findViewById(R.id.feedbackField);
         feedBackButton = findViewById(R.id.feedBackButton);
-
         feedbackField.setHint("Write your review here...");
 
         Intent intent = getIntent();
         String userJson = intent.getStringExtra("userJsonObject");
         String orderJson = intent.getStringExtra("orderJsonObject");
 
-        if (userJson != null) {
-            connectedUser = gson.fromJson(userJson, BasicUser.class);
-        } else {
+        if (userJson != null) connectedUser = gson.fromJson(userJson, BasicUser.class);
+        else {
             Toast.makeText(this, "User data missing", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        if (orderJson != null) {
-            currentOrder = gson.fromJson(orderJson, FoodOrder.class);
-        } else {
+        if (orderJson != null) currentOrder = gson.fromJson(orderJson, FoodOrder.class);
+        else {
             Toast.makeText(this, "Order data missing", Toast.LENGTH_SHORT).show();
             finish();
             return;
@@ -86,31 +83,37 @@ public class FeedbackActivity extends AppCompatActivity {
 
     private void determineReviewTarget() {
         if (connectedUser instanceof Driver) {
-            // Driver reviews the buyer
             reviewTargetUser = currentOrder.getBuyer();
             Toast.makeText(this, "Reviewing Customer: " + reviewTargetUser.getName() + " " +
                     reviewTargetUser.getSurname(), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Driver driver = currentOrder.getDriver();
+
+        if (driver != null && driver.getId() != 0) {
+            reviewTargetUser = driver;
+            Toast.makeText(this, "Reviewing Driver: " +
+                    driver.getName() + " " + driver.getSurname(), Toast.LENGTH_SHORT).show();
+            feedBackButton.setEnabled(true);
         } else {
-            // Customer reviews driver
-            if (currentOrder.getDriver() != null) {
-                reviewTargetUser = currentOrder.getDriver();
-                Toast.makeText(this, "Reviewing Driver: " + reviewTargetUser.getName() + " " +
-                        reviewTargetUser.getSurname(), Toast.LENGTH_SHORT).show();
-                feedBackButton.setEnabled(true);
-            } else if (currentOrder.getDriver() != null) {
-                // Fetch driver by ID dynamically
-                fetchDriverById(currentOrder.getDriver().getId());
-            } else {
-                Toast.makeText(this, "No driver assigned to this order", Toast.LENGTH_SHORT).show();
-                feedBackButton.setEnabled(false);
-            }
+            Toast.makeText(this, "Fetching assigned driver...", Toast.LENGTH_SHORT).show();
+            fetchDriverById(driver != null ? driver.getId() : 0);
         }
     }
 
     private void fetchDriverById(int driverId) {
+        if (driverId == 0) {
+            handler.post(() -> {
+                Toast.makeText(this, "No driver assigned to this order", Toast.LENGTH_SHORT).show();
+                feedBackButton.setEnabled(false);
+            });
+            return;
+        }
+
         executor.execute(() -> {
             try {
-                String url = String.format(Constants.GET_DRIVER_BY_ID, driverId); // e.g., "/api/drivers/%d"
+                String url = String.format(Constants.GET_DRIVER_BY_ID, driverId);
                 String response = RestOperations.sendGet(url);
 
                 if (response != null && !response.isEmpty()) {
@@ -133,15 +136,12 @@ public class FeedbackActivity extends AppCompatActivity {
             } catch (IOException e) {
                 Log.e("FeedbackActivity", "Error fetching driver", e);
                 handler.post(() -> {
-                    Toast.makeText(FeedbackActivity.this,
-                            "Network error fetching driver", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(FeedbackActivity.this, "Network error fetching driver", Toast.LENGTH_SHORT).show();
                     feedBackButton.setEnabled(false);
                 });
             }
         });
     }
-
-
     private void setupRatingList() {
         List<String> ratingOptions = new ArrayList<>();
         ratingOptions.add("⭐ 1 Star - Poor");
@@ -151,15 +151,16 @@ public class FeedbackActivity extends AppCompatActivity {
         ratingOptions.add("⭐⭐⭐⭐⭐ 5 Stars - Excellent");
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_list_item_single_choice, ratingOptions);
+                android.R.layout.simple_list_item_single_choice,
+                ratingOptions);
+
         feedbackList.setAdapter(adapter);
         feedbackList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 
         feedbackList.setOnItemClickListener((parent, view, position, id) -> {
             selectedRating = position + 1;
             feedbackList.setItemChecked(position, true);
-            Toast.makeText(this, "Selected rating: " + selectedRating + " stars",
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Selected rating: " + selectedRating + " stars", Toast.LENGTH_SHORT).show();
         });
     }
 
@@ -176,12 +177,9 @@ public class FeedbackActivity extends AppCompatActivity {
                     List<Review> reviews = gson.fromJson(response, listType);
 
                     handler.post(() -> {
-                        if (reviews != null && !reviews.isEmpty()) {
-                            displayExistingReviewsInfo(reviews);
-                        }
+                        if (reviews != null && !reviews.isEmpty()) displayExistingReviewsInfo(reviews);
                     });
                 }
-
             } catch (IOException e) {
                 Log.e("FeedbackActivity", "Network error loading reviews", e);
             } catch (Exception e) {
@@ -191,15 +189,16 @@ public class FeedbackActivity extends AppCompatActivity {
     }
 
     private void displayExistingReviewsInfo(List<Review> reviews) {
-        double avgRating = reviews.stream().mapToInt(Review::getRating).average().orElse(0.0);
-        Review mostRecentReview = reviews.get(reviews.size() - 1);
+        double avg = reviews.stream().mapToInt(Review::getRating).average().orElse(0.0);
+        Review latest = reviews.get(reviews.size() - 1);
 
-        String info = String.format("\n\n--- Existing Reviews ---\n" +
-                        "Average Rating: %.1f/5 (%d reviews)\n\n" +
-                        "Most recent: \"%s\" - %d stars",
-                avgRating, reviews.size(),
-                mostRecentReview.getReviewText(),
-                mostRecentReview.getRating());
+        String info = String.format(
+                "\n\n--- Existing Reviews ---\nAverage Rating: %.1f/5 (%d reviews)\n\nMost recent: \"%s\" - %d stars",
+                avg,
+                reviews.size(),
+                latest.getReviewText(),
+                latest.getRating()
+        );
 
         feedbackField.setHint("Write your review here..." + info);
     }
@@ -220,7 +219,7 @@ public class FeedbackActivity extends AppCompatActivity {
         executor.execute(() -> {
             try {
                 String url = String.format(Constants.CREATE_REVIEW_FOR_ORDER, currentOrder.getId());
-                String jsonPayload = String.format(
+                String json = String.format(
                         "{\"commentOwnerId\":%d,\"feedbackUserId\":%d,\"rating\":%d,\"reviewText\":\"%s\"}",
                         connectedUser.getId(),
                         reviewTargetUser.getId(),
@@ -228,13 +227,11 @@ public class FeedbackActivity extends AppCompatActivity {
                         reviewText.replace("\"", "\\\"").replace("\n", "\\n")
                 );
 
-                String response = RestOperations.sendPost(url, jsonPayload);
+                String response = RestOperations.sendPost(url, json);
 
                 handler.post(() -> {
                     if (response != null) {
-                        Toast.makeText(FeedbackActivity.this,
-                                "Review submitted successfully! (" + selectedRating + " stars)",
-                                Toast.LENGTH_LONG).show();
+                        Toast.makeText(FeedbackActivity.this, "Review submitted successfully! (" + selectedRating + " stars)", Toast.LENGTH_LONG).show();
                         finish();
                     } else {
                         Toast.makeText(FeedbackActivity.this, "Failed to submit review", Toast.LENGTH_SHORT).show();
@@ -243,10 +240,7 @@ public class FeedbackActivity extends AppCompatActivity {
 
             } catch (IOException e) {
                 Log.e("FeedbackActivity", "Error submitting review", e);
-                handler.post(() -> {
-                    Toast.makeText(FeedbackActivity.this, "Network error", Toast.LENGTH_SHORT).show();
-                    feedBackButton.setEnabled(true);
-                });
+                handler.post(() -> Toast.makeText(FeedbackActivity.this, "Network error", Toast.LENGTH_SHORT).show());
             }
         });
     }

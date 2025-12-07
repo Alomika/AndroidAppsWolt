@@ -1,5 +1,7 @@
 package com.example.prifscourseandriod;
 
+import static java.lang.Math.log;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -19,6 +21,7 @@ import com.example.prifscourseandriod.model.Cuisine;
 import com.example.prifscourseandriod.model.Driver;
 import com.example.prifscourseandriod.model.FoodOrder;
 import com.example.prifscourseandriod.model.OrderStatus;
+import com.example.prifscourseandriod.model.User;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -57,7 +60,7 @@ public class MyOrders extends AppCompatActivity {
         // Hide buttons initially
         updateButtonVisibility(null);
 
-        BasicUser connectedUser = getConnectedUser();
+        User connectedUser = getConnectedUser();
         if (connectedUser != null) {
             fetchOrdersForUser(connectedUser.getId());
         } else {
@@ -65,7 +68,7 @@ public class MyOrders extends AppCompatActivity {
         }
     }
 
-    private BasicUser getConnectedUser() {
+    private User getConnectedUser() {
         Intent intent = getIntent();
         String userInfo = intent.getStringExtra("userJsonObject");
         if (userInfo == null) return null;
@@ -133,7 +136,6 @@ public class MyOrders extends AppCompatActivity {
         Button feedbackButton = findViewById(R.id.feedBackButton);
 
         if (order == null) {
-            // No order selected - hide all buttons
             approveButton.setVisibility(View.GONE);
             chatButton.setVisibility(View.GONE);
             feedbackButton.setVisibility(View.GONE);
@@ -141,12 +143,10 @@ public class MyOrders extends AppCompatActivity {
         }
 
         if (order.getOrderStatus() == OrderStatus.COMPLETED) {
-            // Order is COMPLETED - only show feedback button
             approveButton.setVisibility(View.GONE);
             chatButton.setVisibility(View.GONE);
             feedbackButton.setVisibility(View.VISIBLE);
         } else {
-            // Order is not completed - show approve and chat, hide feedback
             approveButton.setVisibility(View.VISIBLE);
             chatButton.setVisibility(View.VISIBLE);
             feedbackButton.setVisibility(View.GONE);
@@ -200,14 +200,11 @@ public class MyOrders extends AppCompatActivity {
         }
 
         FoodOrder selectedOrder = orders.get(selectedOrderPosition);
-
-        // Only allow feedback for COMPLETED orders
         if (selectedOrder.getOrderStatus() != OrderStatus.COMPLETED) {
             Toast.makeText(this, "You can only give feedback for completed orders", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Open Review Activity
         Intent intent = new Intent(this, FeedbackActivity.class);
         intent.putExtra("userJsonObject", getIntent().getStringExtra("userJsonObject"));
         intent.putExtra("orderJsonObject", gson.toJson(selectedOrder));
@@ -215,7 +212,24 @@ public class MyOrders extends AppCompatActivity {
     }
 
     public void openOrderChat(View view) {
+        if (selectedOrderPosition == -1 || orders == null || selectedOrderPosition >= orders.size()) {
+            Toast.makeText(this, "Please select an order first", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        FoodOrder selectedOrder = orders.get(selectedOrderPosition);
+        if (selectedOrder == null) {
+            Toast.makeText(this, "Selected order is null", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Intent intent = new Intent(MyOrders.this, ChatActivity.class);
+        intent.putExtra("userJsonObject", getIntent().getStringExtra("userJsonObject"));
+        intent.putExtra("orderJsonObject", gson.toJson(selectedOrder));
+        startActivity(intent);
     }
+
+
 
     public void changeOrderStatus(View view) {
         if (selectedOrderPosition == -1 || selectedOrderPosition >= orders.size()) {
@@ -224,7 +238,7 @@ public class MyOrders extends AppCompatActivity {
         }
 
         FoodOrder selectedOrder = orders.get(selectedOrderPosition);
-        BasicUser connectedUser = getConnectedUser();
+        User connectedUser = getConnectedUser();
 
         if (connectedUser == null) {
             Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();

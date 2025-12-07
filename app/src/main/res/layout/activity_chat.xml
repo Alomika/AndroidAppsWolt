@@ -2,43 +2,39 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/messageList"
+    android:id="@+id/chatRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".FeedbackActivity">
+    tools:context=".ChatActivity">
 
     <ListView
-        android:id="@+id/ratingList"
-        android:layout_width="379dp"
-        android:layout_height="322dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:id="@+id/messageList"
+        android:layout_width="351dp"
+        android:layout_height="334dp"
+        app:layout_constraintBottom_toTopOf="@+id/messageField"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.038" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
-        android:id="@+id/feedbackField"
-        android:layout_width="342dp"
-        android:layout_height="198dp"
-        android:background="#E2E0D7"
+        android:id="@+id/messageField"
+        android:layout_width="377dp"
+        android:layout_height="152dp"
+        android:layout_marginStart="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.484"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.593" />
+        app:layout_constraintVertical_bias="0.639" />
 
     <Button
-        android:id="@+id/feedBackButton"
+        android:id="@+id/sendButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:onClick="sendFeedback"
-        android:text="Send FeedBack"
+        android:text="Send"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.94" />
-
+        app:layout_constraintVertical_bias="0.874" />
 </androidx.constraintlayout.widget.ConstraintLayout>

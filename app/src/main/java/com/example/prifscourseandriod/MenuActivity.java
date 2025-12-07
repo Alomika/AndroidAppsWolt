@@ -17,6 +17,7 @@ import com.example.prifscourseandriod.model.BasicUser;
 import com.example.prifscourseandriod.model.Cuisine;
 import com.example.prifscourseandriod.model.Driver;
 import com.example.prifscourseandriod.model.Restaurant;
+import com.example.prifscourseandriod.model.User;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
